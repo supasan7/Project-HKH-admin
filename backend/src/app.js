@@ -6,22 +6,16 @@ const errorHandler = require('./middleware/errorHandler');
 
 const app = express();
 
-// CORS - support multiple origins
-const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173')
-    .split(',')
-    .map(o => o.trim());
-
+// CORS
 app.use(cors({
-    origin: function (origin, callback) {
-        // Allow requests with no origin (mobile apps, curl, etc.)
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.some(allowed => origin.startsWith(allowed))) {
-            return callback(null, true);
-        }
-        callback(null, false);
-    },
+    origin: true,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }));
+
+// Handle preflight requests explicitly
+app.options('*', cors());
 
 // Parse JSON & URL-encoded
 app.use(express.json());
