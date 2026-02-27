@@ -29,21 +29,14 @@
             ]
         }
     ],
-    "routes": [
+    "rewrites": [
         {
-            "src": "/api/(.*)",
-            "methods": [
-                "OPTIONS"
-            ],
-            "dest": "server.js"
+            "source": "/api/(.*)",
+            "destination": "/server.js"
         },
         {
-            "src": "/api/(.*)",
-            "dest": "server.js"
-        },
-        {
-            "src": "/uploads/(.*)",
-            "dest": "server.js"
+            "source": "/uploads/(.*)",
+            "destination": "/server.js"
         }
     ]
 }
