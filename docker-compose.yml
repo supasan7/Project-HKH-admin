@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: hkh_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-hkh_db}
+      POSTGRES_USER: ${DB_USER:-hkh_admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-hkh_secret_2024}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-hkh_admin} -d ${DB_NAME:-hkh_db}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: hkh_backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-hkh_db}
+      DB_USER: ${DB_USER:-hkh_admin}
+      DB_PASSWORD: ${DB_PASSWORD:-hkh_secret_2024}
+      JWT_SECRET: ${JWT_SECRET:-change_me_in_production}
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    volumes:
+      - uploads:/app/uploads
+
+  frontend:
+    build: ./frontend
+    container_name: hkh_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+
+volumes:
+  pgdata:
+    driver: local
+  uploads:
+    driver: local
