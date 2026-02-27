@@ -3,7 +3,9 @@ const env = require('./src/config/env');
 
 const PORT = env.port;
 
-app.listen(PORT, () => {
+// Only listen when running locally (not on Vercel serverless)
+if (process.env.VERCEL !== '1') {
+  app.listen(PORT, () => {
     console.log(`
   ╔═══════════════════════════════════════════╗
   ║     🏠 Project HKH (เฮือนคุ้มฮัก)         ║
@@ -12,4 +14,9 @@ app.listen(PORT, () => {
   ║     http://localhost:${PORT}                 ║
   ╚═══════════════════════════════════════════╝
   `);
-});
+  });
+}
+
+// Export for Vercel serverless
+module.exports = app;
+
