@@ -333,11 +333,6 @@ input, select, textarea {
 @media (max-width: 1024px) {
   .grid-4, .grid-3 { grid-template-columns: repeat(2, 1fr); }
 }
-@media (max-width: 640px) {
-  .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
-  .main-content { margin-left: 0; }
-  .page-content { padding: var(--space-4); }
-}
 
 /* ============================================
    Modal Styles
@@ -467,3 +462,134 @@ input, select, textarea {
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--color-text-secondary); }
+
+/* ============================================
+   Responsive — Mobile (≤768px)
+   ============================================ */
+
+@media (max-width: 768px) {
+  /* Layout */
+  .main-content {
+    margin-left: 0;
+  }
+  .page-content {
+    padding: var(--space-4);
+  }
+
+  /* Page Header — stack vertically */
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+    margin-bottom: var(--space-5);
+  }
+  .page-title {
+    font-size: var(--font-size-xl);
+  }
+  .page-subtitle {
+    font-size: var(--font-size-xs);
+  }
+
+  /* Grids — single column */
+  .grid-4, .grid-3, .grid-2 {
+    grid-template-columns: 1fr;
+  }
+  .grid {
+    gap: var(--space-4);
+  }
+
+  /* Cards — no hover transform on touch */
+  .card {
+    padding: var(--space-4);
+  }
+  .card:hover {
+    transform: none;
+  }
+
+  /* Tables — compact */
+  .data-table th,
+  .data-table td {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--font-size-xs);
+  }
+  .table-container {
+    margin: 0 calc(-1 * var(--space-4));
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+
+  /* Buttons — wrap and full-width in page-header */
+  .page-header .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Modals — full width on mobile */
+  .modal-content {
+    width: 95%;
+    padding: var(--space-5);
+    margin: var(--space-4);
+    max-height: 85vh;
+  }
+  .modal-header {
+    margin-bottom: var(--space-4);
+  }
+  .modal-title {
+    font-size: var(--font-size-lg);
+  }
+  .modal-footer {
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+    padding-top: var(--space-4);
+  }
+  .modal-footer .btn {
+    width: 100%;
+  }
+
+  /* Forms — touch-friendly */
+  .form-input,
+  .form-select,
+  .form-textarea {
+    padding: var(--space-3) var(--space-4);
+    font-size: 16px; /* prevent iOS zoom on focus */
+  }
+
+  /* Badges */
+  .badge {
+    font-size: 0.65rem;
+    padding: 2px var(--space-2);
+  }
+
+  /* Loading */
+  .loading-container {
+    padding: var(--space-8);
+  }
+}
+
+/* ============================================
+   Responsive — Small Mobile (≤480px)
+   ============================================ */
+
+@media (max-width: 480px) {
+  .page-content {
+    padding: var(--space-3);
+  }
+  .page-title {
+    font-size: var(--font-size-lg);
+  }
+  .card {
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+  }
+  .btn {
+    padding: var(--space-2) var(--space-4);
+    font-size: var(--font-size-xs);
+  }
+  .btn-lg {
+    padding: var(--space-3) var(--space-5);
+    font-size: var(--font-size-sm);
+  }
+}
+

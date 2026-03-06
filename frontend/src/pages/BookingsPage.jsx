@@ -117,6 +117,7 @@ export default function BookingsPage() {
         if (b.is_cancelled) return { label: 'ยกเลิก', class: 'badge-danger' };
         if (b.checked_out_at) return { label: 'เช็คเอาท์แล้ว', class: 'badge-default' };
         if (b.checked_in_at) return { label: 'เช็คอินแล้ว', class: 'badge-info' };
+        if (!b.has_payment) return { label: 'รอจ่ายเงิน', class: 'badge-danger' };
         return { label: 'รอเช็คอิน', class: 'badge-warning' };
     };
 
@@ -172,7 +173,11 @@ export default function BookingsPage() {
                                         <div style={{ display: 'flex', gap: 'var(--space-1)', flexWrap: 'wrap' }}>
                                             {!b.is_cancelled && !b.checked_in_at && (
                                                 <>
-                                                    <button className="btn btn-primary btn-sm" onClick={(e) => handleCheckIn(b.id, e)}>📥 เช็คอิน</button>
+                                                    {b.has_payment ? (
+                                                        <button className="btn btn-primary btn-sm" onClick={(e) => handleCheckIn(b.id, e)}>📥 เช็คอิน</button>
+                                                    ) : (
+                                                        <button className="btn btn-ghost btn-sm" disabled title="ต้องอัพโหลดสลิปและยืนยันการชำระเงินก่อน">🔒 รอชำระเงิน</button>
+                                                    )}
                                                     <button className="btn btn-danger btn-sm" onClick={(e) => handleCancel(b.id, e)}>ยกเลิก</button>
                                                 </>
                                             )}
@@ -199,7 +204,7 @@ export default function BookingsPage() {
                                 <label className="form-label">ห้องพัก</label>
                                 <select className="form-select" value={form.room_id} onChange={e => handleRoomChange(e.target.value)} required>
                                     <option value="">เลือกห้อง</option>
-                                    {rooms.filter(r => r.status === 'available').map(r => <option key={r.id} value={r.id}>ห้อง {r.room_number} - {r.room_type} ({formatCurrency(r.price_per_night)}/คืน)</option>)}
+                                    {rooms.map(r => <option key={r.id} value={r.id}>ห้อง {r.room_number} - {r.room_type} ({formatCurrency(r.price_per_night)}/คืน)</option>)}
                                 </select>
                             </div>
                             <div className="form-group"><label className="form-label">ชื่อแขก</label><input className="form-input" value={form.guest_name} onChange={e => setForm({ ...form, guest_name: e.target.value })} required /></div>
@@ -368,7 +373,7 @@ export default function BookingsPage() {
                 <div className="modal-overlay" onClick={() => setSlipPreview(null)} style={{ zIndex: 1100 }}>
                     <div className="bd-slip-viewer" onClick={e => e.stopPropagation()}>
                         <button className="modal-close" onClick={() => setSlipPreview(null)} style={{ position: 'absolute', top: 12, right: 12, zIndex: 10 }}>✕</button>
-                        <img src={`/api${slipPreview}`} alt="สลิป" className="bd-slip-img" />
+                        <img src={slipPreview} alt="สลิป" className="bd-slip-img" />
                     </div>
                 </div>
             )}

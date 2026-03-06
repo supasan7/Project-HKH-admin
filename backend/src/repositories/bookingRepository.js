@@ -4,7 +4,11 @@ const bookingRepository = {
     async findAll({ page = 1, limit = 20, status } = {}) {
         const offset = (page - 1) * limit;
         let sql = `
-      SELECT b.*, r.room_number, r.room_type, u.display_name AS created_by_name
+      SELECT b.*, r.room_number, r.room_type, u.display_name AS created_by_name,
+        EXISTS (
+          SELECT 1 FROM transactions t
+          WHERE t.booking_id = b.id AND t.type = 'income' AND t.status = 'verified' AND t.attachment_url IS NOT NULL
+        ) AS has_payment
       FROM bookings b
       JOIN rooms r ON b.room_id = r.id
       JOIN users u ON b.created_by = u.id

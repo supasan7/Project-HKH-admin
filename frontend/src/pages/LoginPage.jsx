@@ -3,67 +3,67 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function LoginPage() {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const { login, loading } = useAuth();
-    const navigate = useNavigate();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const { login, loading } = useAuth();
+  const navigate = useNavigate();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-        try {
-            await login(username, password);
-            navigate('/');
-        } catch (err) {
-            setError(err.response?.data?.message || 'เกิดข้อผิดพลาด');
-        }
-    };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    try {
+      await login(username, password);
+      navigate('/');
+    } catch (err) {
+      setError(err.response?.data?.message || 'เกิดข้อผิดพลาด');
+    }
+  };
 
-    return (
-        <div className="login-page">
-            <div className="login-card glass">
-                <div className="login-header">
-                    <span className="login-icon">🏠</span>
-                    <h1 className="login-title">เฮือนคุ้มฮัก</h1>
-                    <p className="login-subtitle">ระบบบริหารจัดการโฮมสเตย์</p>
-                </div>
+  return (
+    <div className="login-page">
+      <div className="login-card glass">
+        <div className="login-header">
+          <span className="login-icon">🏠</span>
+          <h1 className="login-title">เฮือนคุ้มฮัก</h1>
+          <p className="login-subtitle">ระบบบริหารจัดการโฮมสเตย์</p>
+        </div>
 
-                <form onSubmit={handleSubmit}>
-                    {error && <div className="login-error">{error}</div>}
+        <form onSubmit={handleSubmit}>
+          {error && <div className="login-error">{error}</div>}
 
-                    <div className="form-group">
-                        <label className="form-label">ชื่อผู้ใช้</label>
-                        <input
-                            className="form-input"
-                            type="text"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            placeholder="username"
-                            required
-                            autoFocus
-                        />
-                    </div>
+          <div className="form-group">
+            <label className="form-label">ชื่อผู้ใช้</label>
+            <input
+              className="form-input"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="username"
+              required
+              autoFocus
+            />
+          </div>
 
-                    <div className="form-group">
-                        <label className="form-label">รหัสผ่าน</label>
-                        <input
-                            className="form-input"
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="••••••••"
-                            required
-                        />
-                    </div>
+          <div className="form-group">
+            <label className="form-label">รหัสผ่าน</label>
+            <input
+              className="form-input"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+            />
+          </div>
 
-                    <button className="btn btn-primary btn-lg" style={{ width: '100%' }} disabled={loading}>
-                        {loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
-                    </button>
-                </form>
-            </div>
+          <button className="btn btn-primary btn-lg" style={{ width: '100%' }} disabled={loading}>
+            {loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
+          </button>
+        </form>
+      </div>
 
-            <style>{`
+      <style>{`
         .login-page {
           min-height: 100vh;
           display: flex;
@@ -75,6 +75,7 @@ export default function LoginPage() {
           width: 100%;
           max-width: 420px;
           padding: var(--space-10);
+          margin: var(--space-4);
           animation: slideUp var(--transition-slow);
         }
         .login-header {
@@ -104,6 +105,6 @@ export default function LoginPage() {
           margin-bottom: var(--space-5);
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { bookingService, roomService } from '../services/api';
 import { formatDate } from '../utils/formatters';
 
@@ -8,6 +8,7 @@ export default function CalendarPage() {
     const [currentDate, setCurrentDate] = useState(new Date());
     const [loading, setLoading] = useState(true);
     const [popup, setPopup] = useState(null); // { booking, x, y }
+    const popupRef = useRef(null);
 
     useEffect(() => {
         const year = currentDate.getFullYear();
@@ -15,17 +16,24 @@ export default function CalendarPage() {
         const start = new Date(year, month, 1).toISOString().split('T')[0];
         const end = new Date(year, month + 1, 0).toISOString().split('T')[0];
 
+        setLoading(true);
         Promise.all([bookingService.getCalendar(start, end), roomService.getAll()])
             .then(([b, r]) => { setBookings(b.data.data); setRooms(r.data.data); })
             .catch(console.error).finally(() => setLoading(false));
     }, [currentDate]);
 
-    // Close popup when clicking outside
+    // Close popup when clicking outside (using ref to avoid race condition)
     useEffect(() => {
         if (!popup) return;
-        const handleClick = () => setPopup(null);
-        const timer = setTimeout(() => document.addEventListener('click', handleClick), 0);
-        return () => { clearTimeout(timer); document.removeEventListener('click', handleClick); };
+        const handleClickOutside = (e) => {
+            if (popupRef.current && !popupRef.current.contains(e.target)) {
+                // Don't close if clicking on a booking cell (let handleCellClick handle it)
+                if (e.target.closest('.cal-cell-booked')) return;
+                setPopup(null);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [popup]);
 
     const getDaysInMonth = () => {
@@ -34,18 +42,21 @@ export default function CalendarPage() {
         return new Date(year, month + 1, 0).getDate();
     };
 
-    const isRoomBooked = (roomId, day) => {
+    const isRoomBooked = useCallback((roomId, day) => {
         const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         return bookings.find(b => b.room_id === roomId && dateStr >= b.check_in_date.split('T')[0] && dateStr < b.check_out_date.split('T')[0]);
-    };
+    }, [bookings, currentDate]);
 
     const handleCellClick = (e, booking) => {
         e.stopPropagation();
-        if (!booking) return;
+        if (!booking) {
+            setPopup(null);
+            return;
+        }
         const rect = e.currentTarget.getBoundingClientRect();
         setPopup({
             booking,
-            x: rect.left + rect.width / 2,
+            x: Math.min(rect.left + rect.width / 2, window.innerWidth - 120),
             y: rect.bottom + 6,
         });
     };
@@ -77,29 +88,36 @@ export default function CalendarPage() {
                     <table className="data-table cal-table" style={{ fontSize: 'var(--font-size-xs)' }}>
                         <thead>
                             <tr>
-                                <th style={{ position: 'sticky', left: 0, background: 'var(--color-bg-secondary)', zIndex: 1 }}>ห้อง</th>
+                                <th style={{ position: 'sticky', left: 0, background: 'var(--color-bg-secondary)', zIndex: 2 }}>ห้อง</th>
                                 {Array.from({ length: days }, (_, i) => <th key={i} style={{ textAlign: 'center', minWidth: 36 }}>{i + 1}</th>)}
                             </tr>
                         </thead>
                         <tbody>
                             {rooms.map(room => (
                                 <tr key={room.id}>
-                                    <td style={{ position: 'sticky', left: 0, background: 'var(--color-bg-secondary)', fontWeight: 600, zIndex: 1 }}>{room.room_number}</td>
+                                    <td style={{ position: 'sticky', left: 0, background: 'var(--color-bg-secondary)', fontWeight: 600, zIndex: 2 }}>{room.room_number}</td>
                                     {Array.from({ length: days }, (_, i) => {
                                         const booking = isRoomBooked(room.id, i + 1);
                                         const isActive = popup && booking && popup.booking.id === booking.id;
                                         return (
                                             <td
                                                 key={i}
+                                                className={booking ? 'cal-cell-booked' : ''}
                                                 onClick={(e) => handleCellClick(e, booking)}
                                                 style={{
                                                     textAlign: 'center',
                                                     padding: '4px',
-                                                    background: isActive ? 'rgba(245, 158, 11, 0.45)' : booking ? 'rgba(245, 158, 11, 0.2)' : 'transparent',
                                                     cursor: booking ? 'pointer' : 'default',
                                                 }}
                                             >
-                                                {booking ? '●' : ''}
+                                                {booking && (
+                                                    <span
+                                                        className="cal-dot"
+                                                        style={{
+                                                            background: isActive ? 'var(--color-accent)' : 'rgba(245, 158, 11, 0.7)',
+                                                        }}
+                                                    />
+                                                )}
                                             </td>
                                         );
                                     })}
@@ -113,6 +131,7 @@ export default function CalendarPage() {
             {/* Booking detail popup */}
             {popup && (
                 <div
+                    ref={popupRef}
                     className="cal-popup"
                     onClick={(e) => e.stopPropagation()}
                     style={{ left: popup.x, top: popup.y }}
@@ -135,9 +154,21 @@ export default function CalendarPage() {
                     transition: none !important;
                 }
 
-                /* Disable table row hover for calendar */
-                .cal-table tr:hover td {
-                    background: inherit !important;
+                /* Disable ONLY empty cell hover - booked cells keep their styles */
+                .cal-table tr td:not(.cal-cell-booked):hover {
+                    background: transparent !important;
+                }
+
+                /* Booking dot */
+                .cal-dot {
+                    display: inline-block;
+                    width: 10px;
+                    height: 10px;
+                    border-radius: 50%;
+                    transition: transform 0.15s ease;
+                }
+                .cal-cell-booked:hover .cal-dot {
+                    transform: scale(1.3);
                 }
 
                 .cal-popup {
@@ -199,8 +230,14 @@ export default function CalendarPage() {
                     font-size: var(--font-size-xs);
                     color: var(--color-text-muted);
                 }
+
+                @media (max-width: 768px) {
+                    .cal-popup {
+                        left: 50% !important;
+                        max-width: 90vw;
+                    }
+                }
             `}</style>
         </div>
     );
 }
-

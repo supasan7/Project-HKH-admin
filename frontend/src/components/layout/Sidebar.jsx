@@ -1,46 +1,60 @@
-import { NavLink } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 
 const menuItems = [
-    { path: '/', label: '📊 Dashboard', roles: ['owner', 'admin'] },
-    { path: '/calendar', label: '📅 ปฏิทิน', roles: ['owner', 'admin'] },
-    { path: '/rooms', label: '🏠 ห้องพัก', roles: ['owner', 'admin'] },
-    { path: '/bookings', label: '📝 การจอง', roles: ['owner', 'admin'] },
-    { path: '/transactions', label: '💰 การเงิน', roles: ['owner', 'admin'] },
-    { path: '/adjustments', label: '📋 คำขอแก้ไข', roles: ['owner'] },
-    { path: '/reports', label: '📈 รายงาน', roles: ['owner', 'admin'] },
-    { path: '/audit-logs', label: '🔍 ประวัติการใช้งาน', roles: ['owner'] },
+  { path: '/', label: '📊 Dashboard', roles: ['owner', 'admin'] },
+  { path: '/calendar', label: '📅 ปฏิทิน', roles: ['owner', 'admin'] },
+  { path: '/rooms', label: '🏠 ห้องพัก', roles: ['owner', 'admin'] },
+  { path: '/bookings', label: '📝 การจอง', roles: ['owner', 'admin'] },
+  { path: '/transactions', label: '💰 การเงิน', roles: ['owner', 'admin'] },
+  { path: '/adjustments', label: '📋 คำขอแก้ไข', roles: ['owner'] },
+  { path: '/reports', label: '📈 รายงาน', roles: ['owner', 'admin'] },
+  { path: '/audit-logs', label: '🔍 ประวัติการใช้งาน', roles: ['owner'] },
 ];
 
-export default function Sidebar() {
-    const { user } = useAuth();
+export default function Sidebar({ isOpen, onClose }) {
+  const { user } = useAuth();
+  const location = useLocation();
 
-    return (
-        <aside className="sidebar">
-            <div className="sidebar-brand">
-                <span className="sidebar-logo">🏠</span>
-                <div>
-                    <h2 className="sidebar-title">เฮือนคุ้มฮัก</h2>
-                    <p className="sidebar-subtitle">HKH Admin</p>
-                </div>
-            </div>
+  // Close sidebar on route change (mobile)
+  useEffect(() => {
+    onClose?.();
+  }, [location.pathname]);
 
-            <nav className="sidebar-nav">
-                {menuItems
-                    .filter(item => item.roles.includes(user?.role))
-                    .map(item => (
-                        <NavLink
-                            key={item.path}
-                            to={item.path}
-                            className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
-                        >
-                            {item.label}
-                        </NavLink>
-                    ))
-                }
-            </nav>
+  return (
+    <>
+      {/* Overlay for mobile */}
+      {isOpen && (
+        <div className="sidebar-overlay" onClick={onClose} />
+      )}
 
-            <style>{`
+      <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
+        <div className="sidebar-brand">
+          <span className="sidebar-logo">🏠</span>
+          <div>
+            <h2 className="sidebar-title">เฮือนคุ้มฮัก</h2>
+            <p className="sidebar-subtitle">HKH Admin</p>
+          </div>
+          <button className="sidebar-close-btn" onClick={onClose}>✕</button>
+        </div>
+
+        <nav className="sidebar-nav">
+          {menuItems
+            .filter(item => item.roles.includes(user?.role))
+            .map(item => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+              >
+                {item.label}
+              </NavLink>
+            ))
+          }
+        </nav>
+
+        <style>{`
         .sidebar {
           position: fixed;
           left: 0;
@@ -53,6 +67,7 @@ export default function Sidebar() {
           flex-direction: column;
           z-index: 100;
           overflow-y: auto;
+          transition: transform 0.3s ease;
         }
         .sidebar-brand {
           display: flex;
@@ -60,6 +75,7 @@ export default function Sidebar() {
           gap: var(--space-3);
           padding: var(--space-6);
           border-bottom: 1px solid var(--color-border);
+          position: relative;
         }
         .sidebar-logo { font-size: 2rem; }
         .sidebar-title {
@@ -70,6 +86,23 @@ export default function Sidebar() {
         .sidebar-subtitle {
           font-size: var(--font-size-xs);
           color: var(--color-text-muted);
+        }
+        .sidebar-close-btn {
+          display: none;
+          position: absolute;
+          right: var(--space-4);
+          top: 50%;
+          transform: translateY(-50%);
+          background: none;
+          border: none;
+          color: var(--color-text-muted);
+          font-size: 1.2rem;
+          padding: var(--space-2);
+          border-radius: var(--radius-md);
+        }
+        .sidebar-close-btn:hover {
+          background: var(--color-bg-hover);
+          color: var(--color-text-primary);
         }
         .sidebar-nav {
           flex: 1;
@@ -98,7 +131,32 @@ export default function Sidebar() {
           color: var(--color-accent);
           font-weight: 600;
         }
+        .sidebar-overlay {
+          display: none;
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+          .sidebar {
+            transform: translateX(-100%);
+          }
+          .sidebar.sidebar-open {
+            transform: translateX(0);
+          }
+          .sidebar-close-btn {
+            display: block;
+          }
+          .sidebar-overlay {
+            display: block;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            backdrop-filter: blur(2px);
+          }
+        }
       `}</style>
-        </aside>
-    );
+      </aside>
+    </>
+  );
 }

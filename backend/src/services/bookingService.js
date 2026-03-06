@@ -105,6 +105,15 @@ const bookingService = {
         const room = await roomRepository.findById(booking.room_id);
         if (room.status !== 'booked') throw new AppError('สถานะห้องไม่ถูกต้อง ห้องต้องอยู่ในสถานะ "มีการจอง"', 400);
 
+        // Verify payment: must have at least one verified income transaction with slip
+        const transactions = await transactionRepository.findByBookingId(id);
+        const hasPayment = transactions.some(t =>
+            t.type === 'income' && t.status === 'verified' && t.attachment_url
+        );
+        if (!hasPayment) {
+            throw new AppError('กรุณาอัพโหลดสลิปการชำระเงินและรอการยืนยันก่อนเช็คอิน', 400);
+        }
+
         const updated = await bookingRepository.checkIn(id);
         await roomRepository.updateStatus(booking.room_id, 'checked_in');
 
